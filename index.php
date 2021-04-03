@@ -16,7 +16,6 @@ if (!is_file(FILE_PATH)) {
 } else {
     // Exécution du code
     $teams = file(FILE_PATH, FILE_IGNORE_NEW_LINES);
-
     //Test de la méthode du serveur
     if ($_SERVER['REQUEST_METHOD'] === "POST") {
         if ($_POST['action'] === 'add') {
@@ -26,12 +25,15 @@ if (!is_file(FILE_PATH)) {
                 //on ajoute dans le tableau les nouvelles équipes.
                 $teams[] = $teamName;
             }
+        } elseif ($_POST['action'] === 'delete') {
+            //on récupére les teams cochées, ensuite on fait la DIFFÉRENCE entre ce tableau et le tableau existant
+            $teamsNames = $_POST['team-name'] ??  []; //si team-name existe sinon on soustrait un array vide
+            $teams = array_diff($teams, $teamsNames);
         }
-        //Suppression du contenu du fichier texte et ajout du conte nu de $team
-        foreach ($teams as $key => $team) {
-            $teams[$key] = $team . PHP_EOL; //PHP_EOL est un caractère de fin de ligne, c'est une constante.
-        }
-        file_put_contents(FILE_PATH, $teams);
+
+        //Suppression du contenu du fichier texte et ajout du contenu de $team avec un retour à la ligne en plus
+        $transformedTeams = array_map(fn ($team) => $team . PHP_EOL, $teams); //PHP_EOL est un caractère de fin de ligne, c'est une constante.
+        file_put_contents(FILE_PATH, $transformedTeams);
     }
 }
 ?>
