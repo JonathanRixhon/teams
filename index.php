@@ -1,12 +1,39 @@
 <?php
+
 //init const
 define('MISSING_TEAM', 'Vous avez oublié de spécifier une ou des équipes');
-define('MISSING_FILE', 'le fichier text est absent');
 define('NO_TEAM_YET', 'Il n’y a pas d’équipe à lister.');
+define('MISSING_FILE', 'le fichier text est absent');
+define('FILE_PATH', 'teams.txt');
+
 //init variables
 $errors = []; //false si l'arrray est vide
-$teams = []; //false si l'arrray est vide
-//
+$teams = [];
+
+//Récupération des données du fichier
+if (!is_file(FILE_PATH)) {
+    $errors[] = MISSING_FILE;
+} else {
+    // Exécution du code
+    $teams = file(FILE_PATH, FILE_IGNORE_NEW_LINES);
+
+    //Test de la méthode du serveur
+    if ($_SERVER['REQUEST_METHOD'] === "POST") {
+        if ($_POST['action'] === 'add') {
+            //Si on veut ajouter une équipe on suit ce code
+            $teamName = trim($_POST['team-name']); //trim supprime les caractères en trop avant et après la chaîne.
+            if ($teamName) {
+                //on ajoute dans le tableau les nouvelles équipes.
+                $teams[] = $teamName;
+            }
+        }
+        //Suppression du contenu du fichier texte et ajout du conte nu de $team
+        foreach ($teams as $key => $team) {
+            $teams[$key] = $team . PHP_EOL; //PHP_EOL est un caractère de fin de ligne, c'est une constante.
+        }
+        file_put_contents(FILE_PATH, $teams);
+    }
+}
 ?>
 
 
@@ -25,6 +52,7 @@ $teams = []; //false si l'arrray est vide
 <body>
     <main class="container">
         <h1>Mes équipes</h1>
+
         <!-- Affichage des erreurs -->
         <?php if (count($errors)) : ?>
             <div class="alert alert-warning">
@@ -52,7 +80,7 @@ $teams = []; //false si l'arrray est vide
             <!-- Ajout des équipes -->
             <section class="mt-5">
                 <h2>Ajout d’une équipe</h2>
-                <form action="/" method="post">
+                <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
                     <label class="form-label" for="team-name">Nom de l’équipe</label>
                     <input class="form-control" type="text" name="team-name" id="team-name" autofocus>
                     <br>
@@ -66,7 +94,7 @@ $teams = []; //false si l'arrray est vide
             <?php if ($teams) : ?>
                 <section class="mt-5">
                     <h2>Suppression d’une ou de plusieurs équipes</h2>
-                    <form action="/" method="post">
+                    <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
 
                         <!-- liste des équipes -->
                         <ul class="list-group">
