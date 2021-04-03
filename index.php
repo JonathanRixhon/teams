@@ -19,16 +19,24 @@ if (!is_file(FILE_PATH)) {
     //Test de la méthode du serveur
     if ($_SERVER['REQUEST_METHOD'] === "POST") {
         if ($_POST['action'] === 'add') {
-            //Si on veut ajouter une équipe on suit ce code
-            $teamName = trim($_POST['team-name']); //trim supprime les caractères en trop avant et après la chaîne.
+            //AJOUT
+            //validation : team-name est une chaine ? OU utilisation du bouton supprimé mais avec l'action add?
+            $tn = $_POST['team-name'] ?? '';
+            if (is_string($tn)) {
+                $teamName = trim($tn); //trim supprime les caractères en trop avant et après la chaîne.
+            }
             if ($teamName) {
                 //on ajoute dans le tableau les nouvelles équipes.
                 $teams[] = $teamName;
             }
         } elseif ($_POST['action'] === 'delete') {
-            //on récupére les teams cochées, ensuite on fait la DIFFÉRENCE entre ce tableau et le tableau existant
-            $teamsNames = $_POST['team-name'] ??  []; //si team-name existe sinon on soustrait un array vide
-            $teams = array_diff($teams, $teamsNames);
+            //SUPPRESSION
+            $tns = $_POST['team-name'] ??  [];
+            if (is_array($tns)) {
+                $teamsNames = $tns; //si team-name existe sinon on soustrait un array vide
+                //on récupére les teams cochées, ensuite on fait la DIFFÉRENCE entre ce tableau et le tableau existant
+                $teams = array_diff($teams, $teamsNames);
+            }
         }
 
         //Suppression du contenu du fichier texte et ajout du contenu de $team avec un retour à la ligne en plus
@@ -36,6 +44,7 @@ if (!is_file(FILE_PATH)) {
         file_put_contents(FILE_PATH, $transformedTeams);
     }
 }
+$team = array_map(fn ($team) => filter_var($team, FILTER_SANITIZE_FULL_SPECIAL_CHARS), $teams)
 ?>
 
 
